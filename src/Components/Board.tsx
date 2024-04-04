@@ -30,6 +30,7 @@ interface IAreaProps {
 }
 
 const Area = styled.div<IAreaProps>`
+  margin-top: 10px;
   padding: 3px;
   border-radius: 3px;
   background-color: ${(props) =>
@@ -110,6 +111,7 @@ function Board({ toDos, boardId }: IBoardProps) {
                 index={index}
                 toDoId={toDo.id}
                 toDoText={toDo.text}
+                boardId={boardId}
               />
             ))}
             {provided.placeholder}
