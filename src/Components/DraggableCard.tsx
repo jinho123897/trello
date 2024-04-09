@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Draggable } from "react-beautiful-dnd";
 import styled from "styled-components";
 import { IoClose, IoPencil } from "react-icons/io5";
+import { FaTrashAlt } from "react-icons/fa";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { toDoState } from "../atoms";
 import { useForm } from "react-hook-form";
@@ -13,10 +14,12 @@ const Card = styled.div<{ $isDragging: boolean }>`
   background-color: ${(props) =>
     props.$isDragging ? "#b3b3b3" : props.theme.cardColor};
   box-shadow: 0px 8px 24px rgba(149, 157, 165, 0.2);
-  margin-bottom: 10px;
   padding: 15px 10px;
   border-radius: 5px;
   transition: all 0.3s ease-in;
+  &:hover > div {
+    opacity: 1;
+  }
 `;
 
 const Form = styled.form`
@@ -34,6 +37,8 @@ const Input = styled.input`
 
 const Icons = styled.div`
   display: flex;
+  opacity: 0;
+  transition: all 0.2s ease-in;
 `;
 
 const ModBtn = styled.button`
@@ -55,7 +60,7 @@ interface IDraggableCardProps {
   toDoId: number;
   toDoText: string;
   index: number;
-  boardId: string;
+  boardId: number;
 }
 
 interface IForm {
@@ -70,32 +75,64 @@ function DraggableCard({
 }: IDraggableCardProps) {
   const [toDos, setToDos] = useRecoilState(toDoState);
   const [isModify, setIsModify] = useState(false);
-  const { register, setValue, handleSubmit } = useForm<IForm>();
+  const { register, setValue, handleSubmit } = useForm<IForm>({
+    defaultValues: {
+      toDoText: toDoText,
+    },
+  });
 
-  const modifyModeHandler = () => {
+  const toggleEdit = () => {
     setIsModify((prev) => !prev);
   };
   const onValid = ({ toDoText }: IForm) => {
-    setToDos((oldToDos) => {
-      return {
-        ...oldToDos,
-        [boardId]: oldToDos[boardId].map((item) => {
-          if (item.id === toDoId) {
-            return { ...item, text: toDoText };
-          }
-          return item;
-        }),
+    setToDos((prev) => {
+      const newList = {
+        id: Date.now(),
+        text: toDoText,
       };
+
+      const allBoardCopy = [...prev];
+      const boardIndex = allBoardCopy.findIndex(
+        (board) => board.id === boardId
+      );
+      const BoardCopy = { ...allBoardCopy[boardIndex] };
+      const listCopy = [...BoardCopy.list];
+      const listIndex = allBoardCopy[boardIndex].list.findIndex(
+        (list) => list.id === toDoId
+      );
+
+      listCopy.splice(listIndex, 1, newList);
+      BoardCopy.list = listCopy;
+      allBoardCopy.splice(boardIndex, 1, BoardCopy);
+
+      return allBoardCopy;
     });
-    setIsModify(false);
+
+    toggleEdit();
   };
-  const cardDelete = () => {
-    setToDos((oldToDos) => {
-      return {
-        ...oldToDos,
-        [boardId]: oldToDos[boardId].filter((item) => item.id !== toDoId),
-      };
-    });
+  const onDelete = () => {
+    if (window.confirm("이 목록을 삭제하시겠습니까?")) {
+      setToDos((prev) => {
+        const allBoardCopy = [...prev];
+        // 클릭한 보드의 인덱스
+        const boardIndex = allBoardCopy.findIndex(
+          (board) => board.id === boardId
+        );
+        // 클릭한 보드 복사
+        const BoardCopy = { ...allBoardCopy[boardIndex] };
+        // 클릭한 todo list 복사
+        const listCopy = [...BoardCopy.list];
+        // 클릭한 todo list의 index
+        const listIndex = BoardCopy.list.findIndex(
+          (item) => item.id === toDoId
+        );
+
+        listCopy.splice(listIndex, 1);
+        BoardCopy.list = listCopy;
+        allBoardCopy.splice(boardIndex, 1, BoardCopy);
+        return allBoardCopy;
+      });
+    }
   };
   return (
     <Draggable draggableId={toDoId + ""} index={index}>
@@ -123,11 +160,11 @@ function DraggableCard({
             <>
               <span>{toDoText}</span>
               <Icons>
-                <ModBtn onClick={modifyModeHandler}>
+                <ModBtn onClick={toggleEdit}>
                   <IoPencil />
                 </ModBtn>
-                <DelBtn onClick={cardDelete}>
-                  <IoClose />
+                <DelBtn onClick={onDelete}>
+                  <FaTrashAlt />
                 </DelBtn>
               </Icons>
             </>
