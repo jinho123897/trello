@@ -1,11 +1,13 @@
 import { useForm } from "react-hook-form";
-import { Droppable } from "react-beautiful-dnd";
+import { DraggableProvided, Droppable } from "react-beautiful-dnd";
 import DragabbleCard from "./DraggableCard";
 import styled from "styled-components";
 import { IToDo, toDoState } from "../atoms";
 import { useSetRecoilState } from "recoil";
 import { IoPencil } from "react-icons/io5";
 import { FaTrashAlt } from "react-icons/fa";
+import { HiMiniBars2 } from "react-icons/hi2";
+import React from "react";
 
 const Wrapper = styled.div`
   display: flex;
@@ -16,7 +18,8 @@ const Wrapper = styled.div`
   border-radius: 10px;
   min-width: 280px;
   max-width: 320px;
-  max-height: 100%;
+  max-height: calc(100% - 50px);
+  margin: 0 10px;
   position: relative;
 `;
 const FloatingBox = styled.div`
@@ -44,7 +47,7 @@ const Header = styled.header`
 const Title = styled.h2`
   font-size: 24px;
   font-weight: 700;
-  margin-left: 10px;
+  margin-right: 10px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -68,7 +71,7 @@ const ModBtn = styled.button`
   cursor: pointer;
 `;
 const DelBtn = styled(ModBtn)``;
-
+const MoveBtn = styled(ModBtn)``;
 interface IAreaProps {
   $isDraggingOver: boolean;
   $isDraggingFromThis: boolean;
@@ -118,13 +121,14 @@ interface IBoardProps {
   list: IToDo[];
   boardTitle: string;
   boardId: number;
+  parentsProvided: DraggableProvided;
 }
 
 interface IForm {
   toDo: string;
 }
 
-function Board({ list, boardTitle, boardId }: IBoardProps) {
+function Board({ list, boardTitle, boardId, parentsProvided }: IBoardProps) {
   const setToDos = useSetRecoilState(toDoState);
   const { register, setValue, handleSubmit } = useForm<IForm>({
     defaultValues: {
@@ -172,7 +176,7 @@ function Board({ list, boardTitle, boardId }: IBoardProps) {
     }
   };
   const deleteBoard = () => {
-    if (window.confirm("이 보드를 삭제하시겠습니까?")) {
+    if (window.confirm(`${boardTitle} 보드를 삭제하시겠습니까?`)) {
       setToDos((allBoards) => {
         const allBoardsCopy = [...allBoards];
         const targetBoardIndex = allBoardsCopy.findIndex(
@@ -186,30 +190,35 @@ function Board({ list, boardTitle, boardId }: IBoardProps) {
   };
 
   return (
-    <Wrapper>
-      <FloatingBox>
-        <Header>
-          <Title>{boardTitle}</Title>
-          <Icons>
-            <ModBtn onClick={onChangeEditMode}>
-              <IoPencil />
-            </ModBtn>
-            <DelBtn onClick={deleteBoard}>
-              <FaTrashAlt />
-            </DelBtn>
-          </Icons>
-        </Header>
-        <Form onSubmit={handleSubmit(onValid)}>
-          <Input
-            {...register("toDo", { required: true })}
-            type="text"
-            placeholder={`Add task on ${boardTitle}`}
-          />
-        </Form>
-      </FloatingBox>
-
-      <Droppable droppableId={boardTitle}>
-        {(provided, snapshot) => (
+    <Droppable droppableId={"board-" + boardTitle} type="BOARD">
+      {(provided, snapshot) => (
+        <Wrapper
+          ref={parentsProvided.innerRef}
+          {...parentsProvided.draggableProps}
+        >
+          <FloatingBox>
+            <Header>
+              <Title>{boardTitle}</Title>
+              <Icons>
+                <ModBtn onClick={onChangeEditMode}>
+                  <IoPencil />
+                </ModBtn>
+                <DelBtn onClick={deleteBoard}>
+                  <FaTrashAlt />
+                </DelBtn>
+                <MoveBtn {...parentsProvided.dragHandleProps}>
+                  <HiMiniBars2 />
+                </MoveBtn>
+              </Icons>
+            </Header>
+            <Form onSubmit={handleSubmit(onValid)}>
+              <Input
+                {...register("toDo", { required: true })}
+                type="text"
+                placeholder={`Add task on ${boardTitle}`}
+              />
+            </Form>
+          </FloatingBox>
           <Area
             $isDraggingOver={snapshot.isDraggingOver}
             $isDraggingFromThis={Boolean(snapshot.draggingFromThisWith)}
@@ -227,10 +236,10 @@ function Board({ list, boardTitle, boardId }: IBoardProps) {
             ))}
             {provided.placeholder}
           </Area>
-        )}
-      </Droppable>
-    </Wrapper>
+        </Wrapper>
+      )}
+    </Droppable>
   );
 }
 
-export default Board;
+export default React.memo(Board);

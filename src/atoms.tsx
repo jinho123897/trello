@@ -34,4 +34,5 @@ export const toDoState = atom<IToDoState[]>({
       list: [{ id: 29389, text: "asd" }],
     },
   ],
+  effects_UNSTABLE: [persistAtom],
 });

@@ -57,12 +57,29 @@ table {
   box-sizing: border-box;
 }
 body {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  -webkit-box-pack: start;
   font-size: 16px;
   font-weight: 300;
   font-family: 'Source Sans Pro', sans-serif;
-  background: linear-gradient(90deg, #212121 50%, #f0f0f0 50%);
+  background-color: #f0f0f0;
   color: #333;
   line-height: 1.2;
+  position: relative;
+  overflow-y: hidden;
+
+
+  &:before {
+    content: '';
+    display: block;
+    width: 50vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    background-color: #212121;
+  }
 }
 a {
   text-decoration:none;
@@ -78,6 +95,7 @@ root.render(
   <RecoilRoot>
     <ThemeProvider theme={darkTheme}>
       <Helmet>
+        <title>To Do List</title>
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400&display=swap"
