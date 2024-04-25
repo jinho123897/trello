@@ -70,6 +70,17 @@ body {
   position: relative;
   overflow-y: hidden;
 
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #999;
+    border-radius: 3px;
+    background-clip: padding-box;
+    border: 1px solid rgba(0, 0, 0, 0);
+    transition: background-color 0.3s;
+  }
 
   &:before {
     content: '';

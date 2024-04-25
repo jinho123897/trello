@@ -7,7 +7,6 @@ import {
 import { useRecoilState } from "recoil";
 import styled from "styled-components";
 import { CgPlayListAdd } from "react-icons/cg";
-import { FaTrashAlt } from "react-icons/fa";
 import { toDoState } from "./atoms";
 import Board from "./Components/Board";
 
